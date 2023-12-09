@@ -284,20 +284,20 @@ use gold_copy.crm;
 
 -- COMMAND ----------
 
-drop table if exists temp_table;
+drop table if exists Sales_table;
 
 -- COMMAND ----------
 
-create table if not exists temp_table(id int, name string,Parttion_id int) partitioned by (Parttion_id);
+create table if not exists Sales_table(Sale_id int, Sales_Person string,Store String,Amount float,Parttion_id int) partitioned by (Parttion_id);
 
 
 -- COMMAND ----------
 
-desc table extended temp_table;
+desc table extended Sales_table;
 
 -- COMMAND ----------
 
-insert into temp_table values(1,'ali',1200),(2,'alia',1200),(1,'alaa',1200)
+insert into Sales_table values(1,'Ali','United States',1200),(2,'Ahmed','Canada',100),(3,'Sameen','Germany',1200)
 
 -- COMMAND ----------
 
@@ -319,8 +319,86 @@ location 'gs://ext_files_wk'
 
 -- COMMAND ----------
 
-create external location 
+show volumes;
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC ### Create and Manage Users and do POC
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### Create and Manage Views
+
+-- COMMAND ----------
+
+select current_user();
+
+-- COMMAND ----------
+
+show groups;
+
+-- COMMAND ----------
+
+select is_account_group_member('IT')
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC df=spark.read.format('csv').option('header','true').load('/Volumes/uc_dev/landing/landing_files/DimSalesTerritory.csv');
+-- MAGIC
+-- MAGIC df.write.mode("overwrite").saveAsTable("uc_dev.landing.DimSalesTerritory")
+
+-- COMMAND ----------
+
+show groups;
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### Row and Column level Security
+
+-- COMMAND ----------
+
+select * from Sales_table;
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ##### Dynamic views
+
+-- COMMAND ----------
+
+create or replace view vw_Sales_table
+select *, case when is_account_group_member(Sales_Person) then Sales_Person
+else '****' end as Sales_Person from Sales_table
+where is_account_group_member(Store)
+
+-- COMMAND ----------
+
+select * from vw_Sales_table;
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC #### Row Filtering
+
+-- COMMAND ----------
+
+Create function udf_row_filter_sales(SalesCountry string)
+return is_account_group_member(SalesCountry);
+
+-- COMMAND ----------
+
+alter table Sales_table
+set row filter udf_row_filter_sales on  (Store)
+
+-- COMMAND ----------
+
+select * from Sales_table;
+
+-- COMMAND ----------
+
+drop table if exists Sales_table;
 
