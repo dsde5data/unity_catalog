@@ -1,18 +1,42 @@
 -- Databricks notebook source
 -- MAGIC %md
 -- MAGIC ### DCL SYNTAX
-
--- COMMAND ----------
-
--- MAGIC %md
+-- MAGIC
+-- MAGIC **user must be in ``**
 -- MAGIC * () Optional
 -- MAGIC * [|] one of the values
+-- MAGIC
 -- MAGIC
 
 -- COMMAND ----------
 
 -- MAGIC %md
+-- MAGIC **1. CREATE | DROP**
+-- MAGIC
+-- MAGIC **2. SHOW**
+-- MAGIC
+-- MAGIC **3. SELECT**
+-- MAGIC
+-- MAGIC **4. SHOW**
+-- MAGIC
+-- MAGIC **5. DESC**
+-- MAGIC
+-- MAGIC **6. GRANT | REVOKE**
+-- MAGIC
+-- MAGIC **7. ALTER**
+-- MAGIC
+-- MAGIC **8. DESC**
+
+-- COMMAND ----------
+
+
+
+-- COMMAND ----------
+
+-- MAGIC %md
 -- MAGIC ###### [CREATE | DROP] OBJECT_TYPE (IF [NOT|] EXISTS) OBJECT_NAME (CASCADE | ) (MANAGED LOCATION 'LOC_URI') (Comment 'Comment Text')
+-- MAGIC
+-- MAGIC ###### [CREATE | DROP] EXTERNAL LOCATION (IF [NOT|] EXISTS) EXTERNAL_LOCATION_NAME URL 'PATH' WITH (CREDENTIAL CREDENTIAL_NAME)
 -- MAGIC
 
 -- COMMAND ----------
@@ -39,13 +63,27 @@
 
 -- COMMAND ----------
 
+
+
+-- COMMAND ----------
+
 -- MAGIC %md
--- MAGIC ###### [GRANT|REVOKE] PERMISSON_TYPE ON [OBJECT_TYPE] OBJECT_NAME [TO|FROM] `USERID`
+-- MAGIC ###### [GRANT|REVOKE] PERMISSON_TYPE ON [OBJECT_TYPE] OBJECT_NAME [TO|FROM] `USERID` 
+-- MAGIC
 
 -- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC ###### SHOW GRANTS ON OBJECT_TYPE OBJECT_NAME
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC
+-- MAGIC ###### ALTER OBJECT_TYPE OBJECT_NAME OWNER TO `USER_ID`;
+-- MAGIC ###### ALTER OBJECT_TYPE OBJECT_NAME RENAME TO NEW_NAME;
+-- MAGIC ###### ALTER EXTERNAL LOCATION location_name SET URL '<url>' [FORCE];
+-- MAGIC ###### ALTER EXTERNAL LOCATION <location-name> SET STORAGE CREDENTIAL CREDENTIAL_NAME;
 
 -- COMMAND ----------
 
@@ -162,23 +200,44 @@ show catalogs;
 
 -- COMMAND ----------
 
-CREATE EXTERNAL LOCATION  ext_uc02
-URL 'gs://uc02' 
-with storage credential uc02_acc
+drop external location if exists ext_uc02;
 
 -- COMMAND ----------
 
-create external location if not exists ext_uc02 
-URL  'gs://uc02/' 
-with storage credential uc02_acc
+show external locations;
 
 -- COMMAND ----------
 
-show grants  on external location  uc_dev_catalog;
+CREATE external location  ext_uc02
+URL 'gs://uc02/' 
+with (storage credential uc02_acc)
 
 -- COMMAND ----------
 
-grant all privileges on external location uc_dev_catalog to `ali.shahbaz9999@gmail.com`
+show external locations
+
+-- COMMAND ----------
+
+grant all privileges on external location ext_uc02 to `ali.shahbaz9999@gmail.com`;
+
+
+-- COMMAND ----------
+
+
+grant read files,write files on external location ext_uc02 to `ali.shahbaz9999@gmail.com`
+
+
+-- COMMAND ----------
+
+show grants  on external location  ext_uc02;
+
+-- COMMAND ----------
+
+revoke all privileges on external location ext_uc02 from `ali.shahbaz9999@gmail.com`
+
+-- COMMAND ----------
+
+show grants on external location ext_uc02
 
 -- COMMAND ----------
 
@@ -210,6 +269,18 @@ select current_database();
 -- MAGIC %md
 -- MAGIC ### Create and Manage table
 -- MAGIC
+
+-- COMMAND ----------
+
+select current_catalog();
+
+-- COMMAND ----------
+
+select current_schema();
+
+-- COMMAND ----------
+
+use gold_copy.crm;
 
 -- COMMAND ----------
 
