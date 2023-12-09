@@ -297,7 +297,7 @@ desc table extended Sales_table;
 
 -- COMMAND ----------
 
-insert into Sales_table values(1,'Ali','United States',1200),(2,'Ahmed','Canada',100),(3,'Sameen','Germany',1200)
+insert into Sales_table values(1,'Ali','United States',1200,1),(2,'Ahmed','Canada',100,1),(3,'Sameen','Germany',1200,1)
 
 -- COMMAND ----------
 
@@ -370,9 +370,9 @@ select * from Sales_table;
 
 -- COMMAND ----------
 
-create or replace view vw_Sales_table
+create or replace view vw_Sales_table as
 select *, case when is_account_group_member(Sales_Person) then Sales_Person
-else '****' end as Sales_Person from Sales_table
+else '****' end as Sales_Person_masked from Sales_table
 where is_account_group_member(Store)
 
 -- COMMAND ----------
@@ -403,7 +403,7 @@ select * from Sales_table;
 drop table if exists Sales_table;
 create table if not exists Sales_table(Sale_id int, Sales_Person string,Store String,Amount float,Parttion_id int) partitioned by (Parttion_id)
 with row filter udf_row_filter_sales on (Store);
-insert into Sales_table values(1,'Ali','United States',1200),(2,'Ahmed','Canada',100),(3,'Sameen','Germany',1200)
+insert into Sales_table values(1,'Ali','United States',1200,1),(2,'Ahmed','Canada',100,1),(3,'Sameen','Germany',1200,1)
 
 
 
@@ -430,3 +430,73 @@ alter column Store set Mask udf_mask_names;
 -- COMMAND ----------
 
 select * from sales_table;
+
+-- COMMAND ----------
+
+alter table sales_table
+alter column store drop mask;
+
+-- COMMAND ----------
+
+drop function udf_mask_names
+
+-- COMMAND ----------
+
+create function udf_mask_names (p_store string)
+return if(is_account_group_member(p_store),'****',p_store);
+
+-- COMMAND ----------
+
+drop table if exists Sales_table;
+create table if not exists Sales_table(Sale_id int, Sales_Person string,Store String mask udf_mask_names,Amount float,Parttion_id int) partitioned by (Parttion_id);
+insert into Sales_table values(1,'Ali','United States',1200,1),(2,'Ahmed','Canada',100,1),(3,'Sameen','Germany',1200,1)
+
+
+
+-- COMMAND ----------
+
+select * from sales_table;
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### Mapping Table
+
+-- COMMAND ----------
+
+drop table if exists valid_users;
+create table valid_users(user_id string);
+insert into valid_users values('ali.shahbaz9999@gmail.com');
+
+
+-- COMMAND ----------
+
+select current_user()
+
+-- COMMAND ----------
+
+drop function if exists ufn_valid_users;
+create  function ufn_valid_users() return exists(
+  select 1 from valid_users v
+  where v.user_id<>current_user()
+)
+
+-- COMMAND ----------
+
+select ufn_valid_users()
+
+-- COMMAND ----------
+
+drop table if exists Sales_table;
+create table if not exists Sales_table(Sale_id int, Sales_Person string,Store String  ,Amount float,Parttion_id int) partitioned by (Parttion_id) with row filter ufn_valid_users on ();
+insert into Sales_table values(1,'Ali','United States',1200,1),(2,'Ahmed','Canada',100,1),(3,'Sameen','Germany',1200,1)
+
+
+
+-- COMMAND ----------
+
+select * from sales_table;
+
+-- COMMAND ----------
+
+
