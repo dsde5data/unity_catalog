@@ -401,4 +401,32 @@ select * from Sales_table;
 -- COMMAND ----------
 
 drop table if exists Sales_table;
+create table if not exists Sales_table(Sale_id int, Sales_Person string,Store String,Amount float,Parttion_id int) partitioned by (Parttion_id)
+with row filter udf_row_filter_sales on (Store);
+insert into Sales_table values(1,'Ali','United States',1200),(2,'Ahmed','Canada',100),(3,'Sameen','Germany',1200)
 
+
+
+-- COMMAND ----------
+
+select * from sales_table;
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC #### Column Masking
+
+-- COMMAND ----------
+
+create function udf_mask_names(Store string)
+return if(is_account_group_member(Store), Store, '*****')
+
+
+-- COMMAND ----------
+
+alter table Sales_table
+alter column Store set Mask udf_mask_names;
+
+-- COMMAND ----------
+
+select * from sales_table;
